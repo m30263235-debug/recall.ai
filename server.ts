@@ -46,56 +46,29 @@ async function generateWithModelFallback(
 ) {
   const candidateModels = [
     'gemini-3.1-flash-lite',
-    'gemini-3.8-flash',
     'gemini-flash-latest',
+    'gemini-3.8-flash',
   ];
 
   let lastError: any = null;
 
-  // 1. Try with tools
   for (const model of candidateModels) {
     try {
-      const configWithTools = params.tools
-        ? { ...params.config, tools: params.tools }
-        : params.config;
       const call = ai.models.generateContent({
         model,
         contents: params.contents,
-        config: configWithTools,
+        config: params.config,
       });
       const response = await Promise.race([
         call,
-        new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 12000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 20000)),
       ]);
       return response as any;
     } catch (err: any) {
       console.warn(
-        `[Gemini] Model ${model} with tools failed (${err.status || err.message?.slice(0, 70)}), trying next fallback model...`
+        `[Gemini] Model ${model} unavailable (${err.status || err.message?.slice(0, 60)}), trying next candidate...`
       );
       lastError = err;
-    }
-  }
-
-  // 2. If tools failed, try without tools across candidates
-  if (params.tools) {
-    for (const model of candidateModels) {
-      try {
-        const call = ai.models.generateContent({
-          model,
-          contents: params.contents,
-          config: params.config,
-        });
-        const response = await Promise.race([
-          call,
-          new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout on model ${model}`)), 10000)),
-        ]);
-        return response as any;
-      } catch (err: any) {
-        console.warn(
-          `[Gemini] Model ${model} fallback without tools failed (${err.status || err.message?.slice(0, 70)})...`
-        );
-        lastError = err;
-      }
     }
   }
 
@@ -612,55 +585,9 @@ async function startServer() {
         );
       }
 
-      // 2. Google Search Grounding using gemini-3.8-flash for real-time web, YouTube & Instagram social intelligence
-      let searchGroundingContext = '';
+      // Direct contextual citations and metadata integration
+      const searchGroundingContext = '';
       const searchCitations: Array<{ title: string; url: string }> = [];
-
-      if (url) {
-        try {
-          const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
-          const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-
-          let searchQuery = '';
-          if (isYouTube) {
-            const ytContext = fetchedMeta.title ? `titled "${fetchedMeta.title}" by ${fetchedMeta.author || 'creator'}` : `ID ${ytId || ''}`;
-            searchQuery = `Search YouTube and Google for video ${ytContext} (${url}). What is the exact video summary, full transcript/key talking points, any featured devices, earphones, IEMs, hardware, recipes or places, exact prices, specifications, pros/cons, key takeaways, and relevant keywords?`;
-          } else if (isInstagram) {
-            const igContext = fetchedMeta.author && fetchedMeta.author !== '@instagram_creator' ? `by creator ${fetchedMeta.author}` : '';
-            const snippet = fetchedMeta.title || fetchedMeta.description ? `(snippet: "${fetchedMeta.title || fetchedMeta.description}")` : '';
-            searchQuery = `Search Instagram and web for this reel / post: "${url}" ${igContext} ${snippet}. Who is the exact creator @username, full caption/speech transcript, audio/music, products/topics shown, specs, and detailed summary?`;
-          } else {
-            const pageContext = fetchedMeta.title ? `titled "${fetchedMeta.title}"` : '';
-            searchQuery = `Search Google for this URL: "${url}" ${pageContext}. What is the exact title, author, key details, specs, actionable takeaways, and in-depth summary?`;
-          }
-
-          const searchRes = await withTimeout(
-            ai.models.generateContent({
-              model: 'gemini-3.8-flash',
-              contents: searchQuery,
-              config: {
-                tools: [{ googleSearch: {} }],
-              },
-            }),
-            7000,
-            null as any
-          );
-
-          if (searchRes && searchRes.text) {
-            searchGroundingContext = searchRes.text;
-            const chunks = searchRes.candidates?.[0]?.groundingMetadata?.groundingChunks;
-            if (Array.isArray(chunks)) {
-              for (const c of chunks) {
-                if (c.web?.uri && c.web?.title) {
-                  searchCitations.push({ title: c.web.title, url: c.web.uri });
-                }
-              }
-            }
-          }
-        } catch (searchErr) {
-          console.warn('Google Search Grounding notice:', searchErr);
-        }
-      }
 
       // Multimodal image part if user attached an image
       let imagePart: any = null;
