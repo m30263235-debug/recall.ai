@@ -1,0 +1,6 @@
+{
+  "name": "Recall — Smart Note-Taking & Second Brain",
+  "description": "A calm second brain that deep-analyzes shared video reels and links, categorizes by content (IEM, Design, Travel), captures item bios (budget IEM specs & prices), and connects notes.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

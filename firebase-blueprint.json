@@ -1,0 +1,137 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique Firebase Authentication user ID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 128
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "User profile avatar URL",
+          "maxLength": 1024
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp when account was created"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Timestamp when account was last updated"
+        }
+      },
+      "required": ["userId", "email"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Saved video reel, audio review, camera capture, or second brain note",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Note unique ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the saved note or reel",
+          "maxLength": 300
+        },
+        "content": {
+          "type": "string",
+          "description": "High level summary and description",
+          "maxLength": 10000
+        },
+        "category": {
+          "type": "string",
+          "description": "Content category (e.g. IEM & Audio, Tech Gear, Design)",
+          "maxLength": 100
+        },
+        "mediaType": {
+          "type": "string",
+          "description": "Media type (reel, video, image, screenshot, text, audio)",
+          "maxLength": 50
+        },
+        "source": {
+          "type": "string",
+          "description": "Source origin type",
+          "maxLength": 50
+        },
+        "sourceUrl": {
+          "type": "string",
+          "description": "External URL to video or post",
+          "maxLength": 2048
+        },
+        "videoEmbedUrl": {
+          "type": "string",
+          "description": "YouTube or player embed URL",
+          "maxLength": 2048
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Cover thumbnail or photo snapshot URL",
+          "maxLength": 2000000
+        },
+        "creator": {
+          "type": "string",
+          "description": "Content creator handle",
+          "maxLength": 100
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Whether note is pinned to top"
+        },
+        "isArchived": {
+          "type": "boolean",
+          "description": "Whether note is archived"
+        },
+        "aiConfidence": {
+          "type": "number",
+          "description": "AI categorization confidence percentage"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Creation timestamp in milliseconds"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Last update timestamp in milliseconds"
+        }
+      },
+      "required": ["id", "userId", "title", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "User"
+      },
+      "description": "User profile document storing basic account data"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": {
+        "$ref": "Note"
+      },
+      "description": "Individual user saved reels, notes, and second brain items"
+    }
+  }
+}
